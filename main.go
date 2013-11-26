@@ -26,6 +26,18 @@ type Config struct {
 }
 
 func main() {
+	// start the server
+	s := &http.Server{
+		Addr:         Configuration.Address,
+		Handler:      new(ImgHandler),
+		ReadTimeout:  Configuration.ReadTimeout * time.Second,
+		WriteTimeout: Configuration.WriteTimeout * time.Second,
+	}
+	log.Panicln(s.ListenAndServe())
+
+}
+
+func init() {
 	// read config file
 	configFile, err := os.Open(filepath.Join(
 		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imgongo", "config.json"))
@@ -41,14 +53,4 @@ func main() {
 	if err != nil {
 		log.Panicln(err)
 	}
-
-	// start the server
-	s := &http.Server{
-		Addr:         Configuration.Address,
-		Handler:      new(ImgHandler),
-		ReadTimeout:  Configuration.ReadTimeout * time.Second,
-		WriteTimeout: Configuration.WriteTimeout * time.Second,
-	}
-	log.Panicln(s.ListenAndServe())
-
 }
