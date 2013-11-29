@@ -3,7 +3,6 @@ package main
 import (
 	"io"
 	"io/ioutil"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"strings"
@@ -23,15 +22,24 @@ func (h *ImgHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *ImgHandler) handleGET(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "Hello GET\n")
+	s := MgoSession.Copy()
+	defer s.Close()
+
+	name, path := h.convertPath(req.URL.Path)
+	if name == "favicon.ico" {
+		return
+	}
+
+	document, err := new(Document).Find(s, name, path)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	// w.Header().Set("Content-Type", document.ContentType)
+	w.Write(document.Binary)
 }
 
 func (h *ImgHandler) handlePOST(w http.ResponseWriter, req *http.Request) {
-	h.upsertDocument(req)
-	io.WriteString(w, "Hello POST\n")
-}
-
-func (h *ImgHandler) upsertDocument(req *http.Request) {
 	s := MgoSession.Copy()
 	defer s.Close()
 
@@ -42,14 +50,19 @@ func (h *ImgHandler) upsertDocument(req *http.Request) {
 
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Panicln(err)
 	}
-	document.Binary = bson.Binary{0x00, data}
+	document.Binary = data
 
 	err = document.Save(s)
+
 	if err != nil {
-		log.Fatalln(err)
+		log.Panicln(err)
+		io.WriteString(w, "error when storing \n")
+	} else {
+		io.WriteString(w, "stored\n")
 	}
+
 }
 
 func (h *ImgHandler) convertPath(urlPath string) (string, string) {

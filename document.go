@@ -9,12 +9,12 @@ import (
 )
 
 type Document struct {
-	Id          bson.ObjectId `bson:"_id,omitempty"`
-	Name        string        `bson:"name"`
-	Path        string        `bson:"path"`
-	ContentType string        `bson:"content_type"`
-	CreatedAt   time.Time     `bson:"created_at"`
-	Binary      bson.Binary   `bson:"binary"`
+	Id        bson.ObjectId `bson:"_id,omitempty"`
+	Name      string        `bson:"name"`
+	Path      string        `bson:"path"`
+	CreatedAt time.Time     `bson:"created_at"`
+	Binary    []byte        `bson:"binary"`
+	// ContentType string        `bson:"content_type"`
 }
 
 func (d Document) Collection(s *mgo.Session) *mgo.Collection {
@@ -31,7 +31,7 @@ func (d *Document) Save(s *mgo.Session) error {
 
 	_, err := coll.Upsert(bson.M{"_id": d.Id}, d)
 	if err != nil {
-		log.Fatalln(err)
+		log.Panicln(err)
 		return err
 	}
 	return nil
