@@ -35,7 +35,10 @@ func (h *ImgHandler) handleGET(w http.ResponseWriter, req *http.Request) {
 		log.Panicln(err)
 	}
 
-	// w.Header().Set("Content-Type", document.ContentType)
+	if document.ContentType != "" {
+		w.Header().Set("Content-Type", document.ContentType)
+	}
+
 	w.Write(document.Binary)
 }
 
@@ -53,6 +56,11 @@ func (h *ImgHandler) handlePOST(w http.ResponseWriter, req *http.Request) {
 		log.Panicln(err)
 	}
 	document.Binary = data
+
+	contentType := req.Header.Get("Content-Type")
+	if contentType != "" {
+		document.ContentType = contentType
+	}
 
 	err = document.Save(s)
 

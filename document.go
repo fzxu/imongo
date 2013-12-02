@@ -9,12 +9,12 @@ import (
 )
 
 type Document struct {
-	Id        bson.ObjectId `bson:"_id,omitempty"`
-	Name      string        `bson:"name"`
-	Path      string        `bson:"path"`
-	CreatedAt time.Time     `bson:"created_at"`
-	Binary    []byte        `bson:"binary"`
-	// ContentType string        `bson:"content_type"`
+	Id          bson.ObjectId `bson:"_id,omitempty"`
+	Name        string        `bson:"name"`
+	Path        string        `bson:"path"`
+	CreatedAt   time.Time     `bson:"created_at"`
+	Binary      []byte        `bson:"binary"`
+	ContentType string        `bson:"content_type,omitempty"`
 }
 
 func (d Document) Collection(s *mgo.Session) *mgo.Collection {

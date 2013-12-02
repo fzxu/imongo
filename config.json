@@ -1,5 +1,6 @@
 {
-  "address": "localhost:9090",
+  "host": "localhost",
+  "port": "9020",
   "read_timeout": 10,
   "write_timeout": 10,
   "db_host": "127.0.0.1:27017",

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -12,12 +13,14 @@ import (
 )
 
 var (
+	ConfigFileUrl string
 	Configuration Config
 	MgoSession    *mgo.Session
 )
 
 type Config struct {
-	Address      string        `json:"address"`
+	Host         string        `json:"host"`
+	Port         string        `json:"port"`
 	ReadTimeout  time.Duration `json:"read_timeout"`
 	WriteTimeout time.Duration `json:"write_timeout"`
 	DBHost       string        `json:"db_host"`
@@ -26,9 +29,11 @@ type Config struct {
 }
 
 func main() {
+	address := Configuration.Host + ":" + Configuration.Port
+	log.Println(address)
 	// start the server
 	s := &http.Server{
-		Addr:         Configuration.Address,
+		Addr:         address,
 		Handler:      new(ImgHandler),
 		ReadTimeout:  Configuration.ReadTimeout * time.Second,
 		WriteTimeout: Configuration.WriteTimeout * time.Second,
@@ -38,14 +43,22 @@ func main() {
 }
 
 func init() {
+
+	var port string
+	flag.StringVar(&port, "p", "9020", "The port which image server is running on")
+	flag.StringVar(&ConfigFileUrl, "c", filepath.Join(
+		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imgongo", "config.json"), "Specify configuration file")
+
+	flag.Parse()
+
 	// read config file
-	configFile, err := os.Open(filepath.Join(
-		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imgongo", "config.json"))
+	configFile, err := os.Open(ConfigFileUrl)
 	if err != nil {
 		log.Panicln(err)
 	}
 
 	json.NewDecoder(configFile).Decode(&Configuration)
+	Configuration.Port = port
 
 	// Initialize mongo connection
 	log.Println(Configuration.DBHost)

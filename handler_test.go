@@ -9,14 +9,15 @@ import (
 	"testing"
 )
 
+var testUrl1 = "http://localhost/foo/sdf/sdflkj/abc.png"
+
 func TestHandlePOST(t *testing.T) {
-	picture1, err := os.Open(filepath.Join(
-		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imgongo", "testdata", "picture1.png"))
+	picture1, err := os.Open(filepath.Join(filepath.Dir(ConfigFileUrl), "testdata", "picture1.png"))
 	if err != nil {
 		log.Panicln(err)
 	}
 
-	req, err := http.NewRequest("POST", "http://example.com/foo/sdf/sdflkj/abc.png", picture1)
+	req, err := http.NewRequest("POST", testUrl1, picture1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,7 +29,7 @@ func TestHandlePOST(t *testing.T) {
 }
 
 func TestHandleGET(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://example.com/foo/sdf/sdflkj/abc.png", nil)
+	req, err := http.NewRequest("GET", testUrl1, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
