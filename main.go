@@ -19,13 +19,20 @@ var (
 )
 
 type Config struct {
-	Host         string        `json:"host"`
-	Port         string        `json:"port"`
-	ReadTimeout  time.Duration `json:"read_timeout"`
-	WriteTimeout time.Duration `json:"write_timeout"`
-	DBHost       string        `json:"db_host"`
-	DBName       string        `json:"db_name"`
-	Collection   string        `json:"collection"`
+	Host         string           `json:"host"`
+	Port         string           `json:"port"`
+	ReadTimeout  time.Duration    `json:"read_timeout"`
+	WriteTimeout time.Duration    `json:"write_timeout"`
+	DBHost       string           `json:"db_host"`
+	DBName       string           `json:"db_name"`
+	Collection   string           `json:"collection"`
+	DefaultSize  *Size            `json:"default_size"`
+	SizeMap      map[string]*Size `json:"size_map"`
+}
+
+type Size struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
 }
 
 func main() {
@@ -47,7 +54,7 @@ func init() {
 	var port string
 	flag.StringVar(&port, "p", "9020", "The port which image server is running on")
 	flag.StringVar(&ConfigFileUrl, "c", filepath.Join(
-		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imgongo", "config.json"), "Specify configuration file")
+		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imongo", "config.json"), "Specify configuration file")
 
 	flag.Parse()
 

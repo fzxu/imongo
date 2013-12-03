@@ -1,11 +1,19 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
+
+	"github.com/disintegration/imaging"
 )
 
 type ImgHandler struct {
@@ -39,7 +47,56 @@ func (h *ImgHandler) handleGET(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", document.ContentType)
 	}
 
-	w.Write(document.Binary)
+	var size *Size
+	sizeReq := req.URL.Query().Get("size")
+	if sizeReq == "" {
+		size = Configuration.DefaultSize
+	} else {
+		size = Configuration.SizeMap[sizeReq]
+	}
+
+	origin, _, err := image.Decode(bytes.NewBuffer(document.Binary))
+	if err != nil {
+		log.Println(err)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	var img image.Image
+	img = imaging.Resize(origin, size.Width, size.Height, imaging.CatmullRom)
+
+	format := strings.ToLower(filepath.Ext(document.Name))
+	if format != ".jpg" && format != ".jpeg" && format != ".png" {
+		err = fmt.Errorf("unknown image format: %s", format)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	switch format {
+	case ".jpg", ".jpeg":
+		var rgba *image.RGBA
+		if nrgba, ok := img.(*image.NRGBA); ok {
+			if nrgba.Opaque() {
+				rgba = &image.RGBA{
+					Pix:    nrgba.Pix,
+					Stride: nrgba.Stride,
+					Rect:   nrgba.Rect,
+				}
+			}
+		}
+		if rgba != nil {
+			err = jpeg.Encode(w, rgba, &jpeg.Options{Quality: 95})
+		} else {
+			err = jpeg.Encode(w, img, &jpeg.Options{Quality: 95})
+		}
+
+	case ".png":
+		err = png.Encode(w, img)
+	}
+
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	}
 }
 
 func (h *ImgHandler) handlePOST(w http.ResponseWriter, req *http.Request) {
