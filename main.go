@@ -19,15 +19,14 @@ var (
 )
 
 type Config struct {
-	Host         string           `json:"host"`
-	Port         string           `json:"port"`
-	ReadTimeout  time.Duration    `json:"read_timeout"`
-	WriteTimeout time.Duration    `json:"write_timeout"`
-	DBHost       string           `json:"db_host"`
-	DBName       string           `json:"db_name"`
-	Collection   string           `json:"collection"`
-	DefaultSize  *Size            `json:"default_size"`
-	SizeMap      map[string]*Size `json:"size_map"`
+	Host         string        `json:"host"`
+	Port         string        `json:"port"`
+	ReadTimeout  time.Duration `json:"read_timeout"`
+	WriteTimeout time.Duration `json:"write_timeout"`
+	DBHost       string        `json:"db_host"`
+	DBName       string        `json:"db_name"`
+	Collection   string        `json:"collection"`
+	StoredSize   *Size         `json:"stored_size"`
 }
 
 type Size struct {

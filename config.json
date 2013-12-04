@@ -6,18 +6,8 @@
   "db_host": "127.0.0.1:27017",
   "db_name": "howtodo_test",
   "collection": "images",
-  "default_size": {
-    "width": 600,
+  "stored_size": {
+    "width": 1920,
     "height": 0
-  },
-  "size_map": {
-    "m": {
-      "width": 500,
-      "height": 0
-    },
-    "l": {
-      "width": 1024,
-      "height": 0
-    }
   }
 }

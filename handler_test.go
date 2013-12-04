@@ -7,11 +7,12 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 var testUrl1 = "http://localhost/foo/sdf/sdflkj/abc.png"
-var testUrl2 = "http://localhost/foo/bar/Picture2.png"
+var testUrl2 = "http://localhost/foo/bar/Picture2.jpg"
 
 func TestHandlePOST(t *testing.T) {
 	picture1, err := os.Open(filepath.Join(filepath.Dir(ConfigFileUrl), "testdata", "picture1.png"))
@@ -49,7 +50,7 @@ func TestHandleGET(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	if img.Bounds().Dx() != Configuration.DefaultSize.Width {
+	if img.Bounds().Dx() != 655 {
 		t.Fail()
 	}
 }
@@ -73,7 +74,11 @@ func TestUploadJPG(t *testing.T) {
 }
 
 func TestGetJPG(t *testing.T) {
-	req, err := http.NewRequest("GET", testUrl2+"?size=l", nil)
+
+	ext := strings.ToLower(filepath.Ext(testUrl2))
+	basename := strings.TrimSuffix(testUrl2, ext)
+
+	req, err := http.NewRequest("GET", basename+"__345x123"+ext, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,7 +96,11 @@ func TestGetJPG(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	if img.Bounds().Dx() != Configuration.SizeMap["l"].Width {
-		t.Errorf("expected %v got %v", Configuration.DefaultSize.Width, img.Bounds().Dx())
+	if img.Bounds().Dx() != 345 {
+		t.Errorf("expected %v got %v", 345, img.Bounds().Dx())
+	}
+
+	if img.Bounds().Dy() != 123 {
+		t.Errorf("expected %v got %v", 123, img.Bounds().Dy())
 	}
 }
