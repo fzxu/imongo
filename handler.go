@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -38,38 +39,39 @@ func (h *ImgHandler) handleGET(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var name, reqSize string
-	delimiterPos := strings.LastIndex(reqName, "__")
-	if delimiterPos > 0 {
-		ext := strings.ToLower(filepath.Ext(reqName))
-		basename := strings.TrimSuffix(reqName, ext)
-		name = reqName[0:delimiterPos] + ext
-		reqSize = basename[delimiterPos+2:]
-	} else {
-		name = reqName
-	}
+	name, size := h.getNameAndSize(reqName)
 
 	document, err := new(Document).Find(s, name, path)
 	if err != nil {
-		log.Panicln(err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	if document.ContentType != "" {
 		w.Header().Set("Content-Type", document.ContentType)
 	}
 
-	var size *Size
-	if strings.Contains(reqSize, "x") {
-		reqWidth, _ := strconv.Atoi(strings.Split(reqSize, "x")[0])
-		reqHeight, _ := strconv.Atoi(strings.Split(reqSize, "x")[1])
-
-		size = &Size{Width: reqWidth, Height: reqHeight}
+	// create cache folder if necessary
+	cacheFilePath, _ := filepath.Abs(filepath.Clean(Configuration.CacheFolder + req.URL.Path))
+	dir := filepath.Dir(cacheFilePath)
+	err = os.MkdirAll(dir, 0755)
+	if err != nil {
+		log.Panicln(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "can not make cache folder")
+		return
 	}
+
+	// create cache image and wrap a multiwriter
+	cacheFile, _ := os.Create(cacheFilePath)
+	defer cacheFile.Close()
+	multiWriter := io.MultiWriter(w, cacheFile)
 
 	if size != nil {
 		origin, format, err := image.Decode(bytes.NewBuffer(document.Binary))
 		if err != nil {
 			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return
 		}
@@ -77,12 +79,14 @@ func (h *ImgHandler) handleGET(w http.ResponseWriter, req *http.Request) {
 		var img image.Image
 		img = imaging.Resize(origin, size.Width, size.Height, imaging.CatmullRom)
 
-		err = h.writeImage(w, img, format)
+		err = h.writeImage(multiWriter, img, format)
 		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
+			return
 		}
 	} else {
-		w.Write(document.Binary)
+		multiWriter.Write(document.Binary)
 	}
 }
 
@@ -145,6 +149,26 @@ func (h *ImgHandler) convertPath(urlPath string) (string, string) {
 	}
 
 	return folders[len(folders)-1], strings.Join(path, ",")
+}
+
+func (h *ImgHandler) getNameAndSize(reqName string) (name string, size *Size) {
+	delimiterPos := strings.LastIndex(reqName, "__")
+	if delimiterPos > 0 {
+		ext := strings.ToLower(filepath.Ext(reqName))
+		basename := strings.TrimSuffix(reqName, ext)
+		name = reqName[0:delimiterPos] + ext
+		reqSize := basename[delimiterPos+2:]
+
+		if strings.Contains(reqSize, "x") {
+			reqWidth, _ := strconv.Atoi(strings.Split(reqSize, "x")[0])
+			reqHeight, _ := strconv.Atoi(strings.Split(reqSize, "x")[1])
+
+			size = &Size{Width: reqWidth, Height: reqHeight}
+		}
+	} else {
+		name = reqName
+	}
+	return
 }
 
 func (h *ImgHandler) writeImage(w io.Writer, img image.Image, format string) (err error) {

@@ -9,5 +9,6 @@
   "stored_size": {
     "width": 1920,
     "height": 0
-  }
+  },
+  "cache_folder": "/tmp/imongo/"
 }

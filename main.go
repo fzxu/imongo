@@ -27,6 +27,7 @@ type Config struct {
 	DBName       string        `json:"db_name"`
 	Collection   string        `json:"collection"`
 	StoredSize   *Size         `json:"stored_size"`
+	CacheFolder  string        `json:"cache_folder"`
 }
 
 type Size struct {
