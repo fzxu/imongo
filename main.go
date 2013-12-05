@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -14,9 +15,14 @@ import (
 
 var (
 	ConfigFileUrl string
-	Configuration Config
+	Configuration *Config
 	MgoSession    *mgo.Session
 )
+
+type ConfigAll struct {
+	Test *Config `json:"test"`
+	Prod *Config `json:"prod"`
+}
 
 type Config struct {
 	Host         string        `json:"host"`
@@ -53,7 +59,9 @@ func main() {
 func init() {
 
 	var port string
+	var env string
 	flag.StringVar(&port, "p", "9020", "The port which image server is running on")
+	flag.StringVar(&env, "e", "test", "The running environment")
 	flag.StringVar(&ConfigFileUrl, "c", filepath.Join(
 		os.Getenv("GOPATH"), "src", "github.com", "arkxu", "imongo", "config.json"), "Specify configuration file")
 
@@ -65,7 +73,14 @@ func init() {
 		log.Panicln(err)
 	}
 
-	json.NewDecoder(configFile).Decode(&Configuration)
+	var configAll ConfigAll
+	json.NewDecoder(configFile).Decode(&configAll)
+	switch strings.ToLower(env) {
+	default:
+		Configuration = configAll.Test
+	case "prod":
+		Configuration = configAll.Prod
+	}
 	Configuration.Port = port
 
 	// Initialize mongo connection

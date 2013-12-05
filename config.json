@@ -1,14 +1,30 @@
 {
-  "host": "0.0.0.0",
-  "port": "9020",
-  "read_timeout": 10,
-  "write_timeout": 10,
-  "db_host": "127.0.0.1:27017",
-  "db_name": "howtodo_test",
-  "collection": "images",
-  "stored_size": {
-    "width": 1920,
-    "height": 0
+  "test": {
+    "host": "0.0.0.0",
+    "port": "9020",
+    "read_timeout": 5,
+    "write_timeout": 5,
+    "db_host": "127.0.0.1:27017",
+    "db_name": "howtodo_test",
+    "collection": "images",
+    "stored_size": {
+      "width": 1920,
+      "height": 0
+    },
+    "cache_folder": "/tmp/imongo/"
   },
-  "cache_folder": "/tmp/imongo/"
+  "prod": {
+    "host": "0.0.0.0",
+    "port": "9020",
+    "read_timeout": 10,
+    "write_timeout": 10,
+    "db_host": "127.0.0.1:27017",
+    "db_name": "howtodo",
+    "collection": "images",
+    "stored_size": {
+      "width": 2560,
+      "height": 0
+    },
+    "cache_folder": "/var/www/images/"
+  }
 }
