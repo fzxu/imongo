@@ -144,11 +144,12 @@ func (h *ImgHandler) convertPath(urlPath string) (string, string) {
 	for ind, folder := range folders {
 		trimFolder := strings.Trim(folder, " ")
 		if trimFolder != "" && ind != len(folders)-1 {
-			path = append(path, strings.ToLower(folder))
+			path = append(path, strings.ToLower(trimFolder))
 		}
 	}
 
-	return folders[len(folders)-1], strings.Join(path, ",")
+	name := strings.ToLower(folders[len(folders)-1])
+	return name, strings.Join(path, ",")
 }
 
 func (h *ImgHandler) getNameAndSize(reqName string) (name string, size *Size) {
@@ -156,7 +157,7 @@ func (h *ImgHandler) getNameAndSize(reqName string) (name string, size *Size) {
 	if delimiterPos > 0 {
 		ext := strings.ToLower(filepath.Ext(reqName))
 		basename := strings.TrimSuffix(reqName, ext)
-		name = reqName[0:delimiterPos] + ext
+		name = strings.ToLower(reqName[0:delimiterPos] + ext)
 		reqSize := basename[delimiterPos+2:]
 
 		if strings.Contains(reqSize, "x") {
