@@ -77,7 +77,12 @@ func (h *ImgHandler) handleGET(w http.ResponseWriter, req *http.Request) {
 		}
 
 		var img image.Image
-		img = imaging.Resize(origin, size.Width, size.Height, imaging.CatmullRom)
+		switch size.Option {
+		case 0:
+			img = imaging.Resize(origin, size.Width, size.Height, imaging.CatmullRom)
+		case 1:
+			img = imaging.Thumbnail(origin, size.Width, size.Height, imaging.CatmullRom)
+		}
 
 		err = h.writeImage(multiWriter, img, format)
 		if err != nil {
@@ -160,11 +165,17 @@ func (h *ImgHandler) getNameAndSize(reqName string) (name string, size *Size) {
 		name = strings.ToLower(reqName[0:delimiterPos] + ext)
 		reqSize := basename[delimiterPos+2:]
 
-		if strings.Contains(reqSize, "x") {
+		switch {
+		case strings.Contains(reqSize, "x"):
 			reqWidth, _ := strconv.Atoi(strings.Split(reqSize, "x")[0])
 			reqHeight, _ := strconv.Atoi(strings.Split(reqSize, "x")[1])
 
-			size = &Size{Width: reqWidth, Height: reqHeight}
+			size = &Size{Width: reqWidth, Height: reqHeight, Option: 0}
+		case strings.Contains(reqSize, "z"):
+			reqWidth, _ := strconv.Atoi(strings.Split(reqSize, "z")[0])
+			reqHeight, _ := strconv.Atoi(strings.Split(reqSize, "z")[1])
+
+			size = &Size{Width: reqWidth, Height: reqHeight, Option: 1}
 		}
 	} else {
 		name = reqName

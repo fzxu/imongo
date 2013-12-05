@@ -33,6 +33,7 @@ type Config struct {
 type Size struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
+	Option int // 0 means Resize, 1 means Thumbnail
 }
 
 func main() {
